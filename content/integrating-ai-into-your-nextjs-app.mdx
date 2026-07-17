@@ -1,0 +1,43 @@
+Adding AI to a product used to mean standing up a Python service and stitching it
+into your frontend. In 2026, a Next.js app can do the whole thing itself. This is
+the pattern I reach for when I want a streaming AI feature that feels instant.
+
+## Start on the server
+
+Keep your API keys on the server — always. A Server Action or Route Handler is
+the perfect place to call the model, because the secret never touches the client:
+
+```tsx
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+  const stream = await model.stream(prompt);
+  return new Response(stream);
+}
+```
+
+## Stream the response
+
+Nobody wants to stare at a spinner while a long completion generates. Streaming
+tokens as they arrive makes the interface feel alive. On the client you read the
+response body and append chunks to state as they come in.
+
+## Design for the wait
+
+Even with streaming, good AI UX is mostly about managing expectations:
+
+1. Show a typing indicator the moment the request starts.
+2. Render partial output immediately.
+3. Let users stop generation early.
+4. Handle errors gracefully — models time out, and that's okay.
+
+## Keep humans in control
+
+The best AI features are assistants, not autopilots. Give people an easy way to
+edit, regenerate or reject what the model produced. Trust is earned by staying
+predictable.
+
+> AI is a feature, not the product. Use it where it removes friction, and get out
+> of the way everywhere else.
+
+That's the whole loop: call the model on the server, stream to the client, and
+design around the wait. Everything else is polish.

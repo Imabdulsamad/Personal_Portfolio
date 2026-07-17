@@ -1,0 +1,42 @@
+Next.js 16 is the version that finally made me stop reaching for a separate
+backend on most projects. The framework now covers so much of the stack — data
+fetching, mutations, caching, streaming — that a single codebase can carry an
+app from prototype to production. Here's what stands out.
+
+## The App Router is the default now
+
+Server Components are no longer the "new" way to build — they're just the way to
+build. By rendering on the server by default, we ship dramatically less
+JavaScript to the browser and keep data-fetching close to where it's used. I only
+reach for `"use client"` when a component genuinely needs interactivity.
+
+## React Server Components change how you fetch data
+
+There's no more `getServerSideProps` ceremony. You `await` your data directly
+inside an async component:
+
+```tsx
+export default async function Page() {
+  const posts = await db.post.findMany();
+  return <PostList posts={posts} />;
+}
+```
+
+The mental overhead of "which lifecycle method do I use?" simply disappears.
+
+## Partial Pre-Rendering blends static and dynamic
+
+PPR lets a single route serve an instantly-static shell while streaming the
+dynamic, personalized bits in afterwards. You get the SEO and speed of a static
+page without giving up per-request data.
+
+## Turbopack makes the dev loop fast again
+
+Cold starts and hot updates are noticeably quicker, which matters more than any
+single feature — a fast feedback loop is what keeps you in flow.
+
+> If you're starting a new project in 2026, the App Router with Server Components
+> is the path I'd recommend without hesitation.
+
+In the next post I'll dig into **Server Actions** and when I still reach for a
+traditional API route.

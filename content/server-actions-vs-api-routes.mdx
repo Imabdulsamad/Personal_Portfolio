@@ -1,0 +1,37 @@
+Server Actions are one of my favourite additions to the React and Next.js world.
+They let you run server code in response to a form submission or a button click
+without hand-writing a fetch call and an endpoint to receive it. But they don't
+make API routes obsolete. Here's the mental model I use.
+
+## What Server Actions are great at
+
+A Server Action is an `async` function marked with `"use server"`. It runs only
+on the server and can be passed straight to a form:
+
+```tsx
+async function subscribe(formData: FormData) {
+  "use server";
+  const email = formData.get("email");
+  await db.subscriber.create({ data: { email } });
+}
+```
+
+They shine for **mutations tied to your own UI**: contact forms, likes, adding to
+a cart, updating settings. You get progressive enhancement, automatic revalidation
+and no separate endpoint to maintain.
+
+## When I still reach for an API route
+
+- **Public or third-party consumers.** If a mobile app, webhook or external
+  service needs the endpoint, a Route Handler with a stable URL is the right tool.
+- **Streaming non-UI responses.** File downloads, RSS feeds and OG images belong
+  in route handlers.
+- **Webhooks.** Stripe, GitHub and friends need a concrete URL to POST to.
+
+## A simple rule of thumb
+
+> If the caller is my own component, I use a Server Action. If the caller is
+> someone else's machine, I expose an API route.
+
+Keep the two straight and you'll spend far less time wiring up plumbing and far
+more time building features.
