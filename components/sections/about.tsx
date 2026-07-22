@@ -7,7 +7,7 @@ import { SectionHeading } from "@/components/section-heading";
 import { Reveal } from "@/components/reveal";
 
 const highlights = [
-  "5+ years shipping production web apps",
+  "Expirenced in shipping production ready web apps",
   "End-to-end: design, frontend, backend, deploy",
   "Performance- and accessibility-first mindset",
 ];

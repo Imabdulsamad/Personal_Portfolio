@@ -11,7 +11,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://abdulsamad.dev",
   author: "Abdul Samad",
   role: "Full Stack Developer",
-  email: "hello@abdulsamad.dev",
+  email: "imabdulsamad38@gmail.com",
   keywords: [
     "Abdul Samad",
     "Full Stack Developer",
