@@ -1,39 +1,30 @@
 "use client";
 
 import * as React from "react";
-import { useActionState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
 
-import { sendContactEmail } from "@/app/actions/contact";
-import {
-  contactSchema,
-  type ContactInput,
-  type ContactState,
-} from "@/lib/validations";
+import { contactSchema, type ContactInput } from "@/lib/validations";
+import { siteConfig } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-const initialState: ContactState = { status: "idle" };
+// Public, domain-restricted key from https://web3forms.com — safe to expose.
+const ACCESS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY;
 
 export function ContactForm() {
-  // useActionState is React 19's successor to useFormState — tracks the
-  // Server Action result and pending state.
-  const [state, formAction, isPending] = useActionState(
-    sendContactEmail,
-    initialState
-  );
-  const [isTransitioning, startTransition] = React.useTransition();
+  const [pending, setPending] = React.useState(false);
+  // Simple honeypot — bots fill hidden fields, humans don't.
+  const honeypotRef = React.useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     reset,
-    setError,
     formState: { errors },
   } = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
@@ -41,45 +32,71 @@ export function ContactForm() {
     defaultValues: { name: "", email: "", subject: "", message: "" },
   });
 
-  // React to the Server Action result: toast + reset on success, and surface
-  // any server-side field errors on the matching inputs.
-  const lastHandled = React.useRef(state);
-  React.useEffect(() => {
-    if (state === lastHandled.current) return;
-    lastHandled.current = state;
-
-    if (state.status === "success") {
-      toast.success(state.message);
+  const onValid = async (data: ContactInput) => {
+    // Silently drop bot submissions.
+    if (honeypotRef.current?.checked) {
       reset();
-    } else if (state.status === "error") {
-      toast.error(state.message);
-      if (state.fieldErrors) {
-        for (const [field, messages] of Object.entries(state.fieldErrors)) {
-          if (messages?.[0]) {
-            setError(field as keyof ContactInput, {
-              type: "server",
-              message: messages[0],
-            });
-          }
-        }
-      }
+      return;
     }
-  }, [state, reset, setError]);
 
-  // Client-side validation passes → hand a FormData payload to the action.
-  const onValid = (data: ContactInput) => {
-    const formData = new FormData();
-    formData.set("name", data.name);
-    formData.set("email", data.email);
-    formData.set("subject", data.subject);
-    formData.set("message", data.message);
-    startTransition(() => formAction(formData));
+    if (!ACCESS_KEY) {
+      toast.error(
+        "The contact form isn't configured yet. Please email me directly instead."
+      );
+      return;
+    }
+
+    setPending(true);
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: ACCESS_KEY,
+          subject: `[Portfolio] ${data.subject}`,
+          from_name: `${siteConfig.name} Portfolio`,
+          replyto: data.email,
+          name: data.name,
+          email: data.email,
+          message: data.message,
+        }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (res.ok && result.success) {
+        toast.success("Thanks for reaching out — I'll get back to you soon!");
+        reset();
+      } else {
+        console.error("[contact] Web3Forms error:", result);
+        toast.error(
+          result.message ?? "Something went wrong sending your message. Please try again."
+        );
+      }
+    } catch (err) {
+      console.error("[contact] Network error:", err);
+      toast.error("Network error — please check your connection and try again.");
+    } finally {
+      setPending(false);
+    }
   };
-
-  const pending = isPending || isTransitioning;
 
   return (
     <form onSubmit={handleSubmit(onValid)} noValidate className="space-y-5">
+      {/* Honeypot: hidden from users, catches bots. */}
+      <input
+        ref={honeypotRef}
+        type="checkbox"
+        name="botcheck"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="sr-only"
+      />
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>

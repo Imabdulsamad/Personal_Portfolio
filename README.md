@@ -11,7 +11,7 @@ A modern, high-performance personal portfolio built to showcase my projects, tec
 - 📝 MDX-powered blog
 - 🚀 Optimized for performance and SEO
 - 📊 Vercel Analytics & Speed Insights
-- 📬 Contact form with Resend
+- 📬 Contact form with Web3Forms
 - 🔍 Accessible and developer-friendly architecture
 
 ---
@@ -50,9 +50,8 @@ npm install
 Create a `.env.local` file in the project root and add the following variables:
 
 ```env
-RESEND_API_KEY=your_key
-CONTACT_FROM_EMAIL=your_verified_email
-CONTACT_TO_EMAIL=your_receiving_email
+# Get a free access key at https://web3forms.com (delivered to the email you register).
+NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
 NEXT_PUBLIC_SITE_URL=your_domain
 ```
 
@@ -199,9 +198,7 @@ Your portfolio will automatically include:
 
 | Variable | Description |
 |----------|-------------|
-| `RESEND_API_KEY` | Resend API Key |
-| `CONTACT_FROM_EMAIL` | Verified sender email |
-| `CONTACT_TO_EMAIL` | Contact form recipient |
+| `NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY` | Web3Forms access key (powers the contact form) |
 | `NEXT_PUBLIC_SITE_URL` | Live website URL |
 
 ---
